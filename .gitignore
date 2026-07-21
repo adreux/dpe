@@ -8,3 +8,12 @@ wheels/
 .env
 # Virtual environments
 .venv
+
+# Données générées par le pipeline (regénérables via le CLI)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+output/*
+!output/.gitkeep
+logs/*.txt

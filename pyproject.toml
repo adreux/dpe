@@ -1,12 +1,26 @@
 [project]
-name = "template"
+name = "innovhemp-dpe-comparator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Comparateur DPE pour argumentaire commercial INNOVHEMP (blocs de chanvre)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "dotenv>=0.9.9",
     "pre-commit>=4.5.1",
+    "requests>=2.32.3",
+    "pandas>=2.2.3",
+    "pyarrow>=17.0.0",
+    "pyyaml>=6.0.2",
+    "click>=8.1.7",
+    "tenacity>=9.0.0",
+    "matplotlib>=3.9.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+    "responses>=0.25.3",
+    "ruff>=0.6.7",
 ]
 
 [tool.pytest.ini_options]
@@ -20,6 +34,7 @@ testpaths = ["tests"]
 line-length = 88
 target-version = "py312"
 
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "F",  # pyflakes
