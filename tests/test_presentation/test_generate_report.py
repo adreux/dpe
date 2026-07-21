@@ -61,8 +61,15 @@ def test_generate_html_report_creates_file_with_key_figures(tmp_path):
     assert "10 Rue de Villevert 60300 Senlis" in content
     assert "1 661" in content or "1 660" in content  # économie €/an arrondie
     assert "hypothèses" in content.lower() or "hypothèse" in content.lower()
-    assert "240 kWh/m²/an en moyenne" in content  # conso moyenne étiquette D
-    assert "310 kWh/m²/an en moyenne" in content  # conso moyenne étiquette E
+    assert "240 kWh/m²/an" in content  # conso moyenne étiquette D
+    assert "310 kWh/m²/an" in content  # conso moyenne étiquette E
+    # équivalent €/an pour la surface cible (80 m², 0,2516 €/kWh)
+    assert "4 831 €/an" in content  # D : 240 * 80 * 0,2516
+    assert "6 240 €/an" in content  # E : 310 * 80 * 0,2516
+    # le comparatif par étiquette DPE doit apparaître avant la liste des adresses
+    assert content.index("Comparatif par étiquette DPE") < content.index(
+        "Logements comparables"
+    )
 
 
 def test_generate_html_report_handles_missing_gain_estimation(tmp_path):
