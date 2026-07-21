@@ -1,0 +1,37 @@
+[project]
+name = "template"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dotenv>=0.9.9",
+    "pre-commit>=4.5.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+# ========================================
+# Ruff configuration
+# ========================================
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+    "B",  # bugbear
+]
+
+ignore = [
+    "E501", # géré par ruff-format
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
