@@ -97,7 +97,71 @@ Tout est mocké via `responses` — aucun appel réseau réel dans les tests.
 
 ## Ticket 2 — Nettoyage (`src/cleaning/`)
 
-_À documenter à l'issue du ticket 2._
+### Pipeline
+
+`normalisation des types/unités -> exclusion des valeurs aberrantes (loguées) ->
+déduplication (1 DPE le plus récent par logement/adresse) -> tagging zone +
+tranche de surface`.
+
+### Utilisation du CLI
+
+```bash
+python -m src.cleaning.cli --input data/raw/ --output data/processed/dpe_clean.parquet
+```
+
+Écrit :
+- `data/processed/dpe_clean.parquet` — le jeu de données propre.
+- `data/processed/dpe_clean_excluded.csv` — les lignes exclues avec la raison
+  (colonne `exclusion_reason`), pour audit.
+
+### Schéma de sortie (`dpe_clean.parquet`)
+
+| Colonne                | Type                    | Unité / description                        |
+|-------------------------|-------------------------|---------------------------------------------|
+| `numero_dpe`            | string                  | Identifiant unique du DPE                    |
+| `adresse`               | string                  | Adresse normalisée (trim, espaces collapsés) |
+| `code_postal`           | string                  | 5 chiffres, zéros initiaux conservés         |
+| `commune`               | string                  |                                               |
+| `etiquette_dpe`         | category ordonnée A→G   | Étiquette énergie                            |
+| `etiquette_ges`         | category ordonnée A→G   | Étiquette climat/GES                         |
+| `surface_m2`            | float                   | Surface habitable (m²)                       |
+| `conso_kwh_m2_an`       | float                   | Consommation énergie primaire (kWhEP/m²/an)  |
+| `annee_construction`    | float (nullable int)    | Année de construction, si connue             |
+| `date_diagnostic`       | datetime                | Date du DPE                                  |
+| `zone`                  | string                  | = `code_postal` (pas de découpage par quartier disponible dans les données ADEME) |
+| `surface_bracket_min`   | float                   | Borne basse ± 15% autour de `surface_m2`     |
+| `surface_bracket_max`   | float                   | Borne haute ± 15% autour de `surface_m2`     |
+
+### Règles de nettoyage
+
+- **Champs requis** : `numero_dpe`, `code_postal_ban`, `adresse_ban`,
+  `surface_habitable_logement`, `conso_5_usages_par_m2_ep`, `etiquette_dpe`,
+  `date_etablissement_dpe`. Toute ligne où l'un de ces champs est absent est
+  exclue (l'API ADEME omet les clés à valeur nulle, cf. ticket 1).
+- **Valeurs aberrantes** exclues (bornes dans `config/settings.py`) :
+  surface ≤ 0 ou > 1000 m², consommation ≤ 0 ou > 2000 kWhEP/m²/an, étiquette
+  DPE hors A–G.
+- **Déduplication** : un seul DPE conservé par adresse normalisée (le plus
+  récent selon `date_etablissement_dpe`).
+
+  ⚠️ **Limite connue** : les champs extraits ne contiennent pas d'identifiant
+  d'appartement fiable (ex: `complement_adresse_logement` n'est pas extrait).
+  Dans un immeuble collectif, plusieurs logements distincts partagent la même
+  adresse postale et sont donc fusionnés en un seul lors de la déduplication.
+  Sur le jeu de test réel (Senlis, 60300 : 5704 DPE bruts), cela réduit le jeu
+  de données à 1896 logements après déduplication — une réduction volontaire
+  mais à garder en tête pour l'interprétation des statistiques du ticket 3.
+  Piste d'amélioration : ré-extraire `complement_adresse_logement` et
+  dédupliquer sur `(adresse, complement_adresse_logement)`.
+- **Tagging** : `zone` = code postal ; tranche de surface = bornes ± 15%
+  autour de la surface de chaque logement, via la fonction réutilisable
+  `surface_bracket()` (aussi utilisée par le ticket 3).
+
+### Tests
+
+```bash
+uv run pytest tests/test_cleaning/
+```
 
 ## Ticket 3 — Comparaison (`src/comparison/`)
 

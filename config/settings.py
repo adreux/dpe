@@ -53,3 +53,27 @@ ADEME_MAX_RETRIES = 5
 
 # Tolérance pour le regroupement par tranche de surface (± 15% autour d'une valeur).
 SURFACE_BRACKET_TOLERANCE = 0.15
+
+# --- Ticket 2 : nettoyage ---
+ENERGY_LABEL_ORDER = ["A", "B", "C", "D", "E", "F", "G"]
+
+# Bornes de validité utilisées pour détecter les valeurs aberrantes. Les
+# logements existants réels vont de studios (~9 m²) à de grandes maisons ;
+# au-delà de MAX_SURFACE_M2 il s'agit presque toujours d'une surface d'immeuble
+# mal renseignée plutôt que d'un logement. De même, au-delà de
+# MAX_CONSO_KWH_M2_AN il s'agit très probablement d'une erreur de saisie plutôt
+# que d'un logement réellement passoire énergétique.
+MIN_SURFACE_M2 = 0  # exclusif : une surface doit être strictement positive
+MAX_SURFACE_M2 = 1000
+MIN_CONSO_KWH_M2_AN = 0  # exclusif : une consommation doit être strictement positive
+MAX_CONSO_KWH_M2_AN = 2000
+
+REQUIRED_FIELDS = [
+    "numero_dpe",
+    "code_postal_ban",
+    "adresse_ban",
+    "surface_habitable_logement",
+    "conso_5_usages_par_m2_ep",
+    "etiquette_dpe",
+    "date_etablissement_dpe",
+]
