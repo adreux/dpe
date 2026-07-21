@@ -30,6 +30,12 @@ def _fmt_number(value: float | None, decimals: int = 0) -> str:
     return f"{value:,.{decimals}f}".replace(",", " ").replace(".", ",")
 
 
+def _render_current_label(etiquette_dpe: str | None) -> str:
+    if etiquette_dpe is None:
+        return "<em>inconnu (pas de DPE existant trouvé pour cette adresse)</em>"
+    return f"<span class='label label-{etiquette_dpe.lower()}'>{etiquette_dpe}</span>"
+
+
 def _render_comparables_table(records: list[dict[str, Any]]) -> str:
     if not records:
         return (
@@ -239,7 +245,9 @@ def generate_html_report(report: dict[str, Any], output_path: Path) -> Path:
     <h1>Argumentaire rénovation énergétique — INNOVHEMP</h1>
     <p class="subtitle">{report["adresse_recherchee"]} (zone {report["zone"]}, {
         _fmt_number(report["surface_m2"], 1)
-    } m²)</p>
+    } m²) — DPE actuel : {
+        _render_current_label(report.get("etiquette_dpe_actuelle"))
+    }</p>
 
     <div class="disclaimer">
       ⚠️ <strong>Estimation à valider.</strong> Le pourcentage de réduction de

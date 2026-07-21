@@ -8,6 +8,7 @@ def _sample_report(with_gain: bool = True) -> dict:
         "adresse_recherchee": "8 Rue de Villevert, 60300 Senlis",
         "zone": "60300",
         "surface_m2": 80.0,
+        "etiquette_dpe_actuelle": "E",
         "logements_comparables": [
             {
                 "adresse": "10 Rue de Villevert 60300 Senlis",
@@ -70,6 +71,8 @@ def test_generate_html_report_creates_file_with_key_figures(tmp_path):
     assert content.index("Comparatif par étiquette DPE") < content.index(
         "Logements comparables"
     )
+    assert "DPE actuel" in content
+    assert "label-e'>E</span>" in content or 'label-e">E</span>' in content
 
 
 def test_generate_html_report_handles_missing_gain_estimation(tmp_path):
@@ -80,3 +83,14 @@ def test_generate_html_report_handles_missing_gain_estimation(tmp_path):
 
     content = output_path.read_text(encoding="utf-8")
     assert "Pas assez de logements comparables" in content
+
+
+def test_generate_html_report_shows_unknown_when_no_current_dpe(tmp_path):
+    report = _sample_report()
+    report["etiquette_dpe_actuelle"] = None
+    output_path = tmp_path / "argumentaire.html"
+
+    generate_html_report(report, output_path)
+
+    content = output_path.read_text(encoding="utf-8")
+    assert "inconnu" in content.lower()

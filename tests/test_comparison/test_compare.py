@@ -147,6 +147,7 @@ def test_resolve_target_finds_surface_from_existing_address(sample_data):
     assert target["zone"] == "60300"
     assert target["surface_m2"] == 100
     assert target["matched_address"] == "1 Rue A"
+    assert target["etiquette_dpe_actuelle"] == "D"
 
 
 def test_resolve_target_uses_explicit_surface_when_address_unknown(sample_data):
@@ -157,6 +158,7 @@ def test_resolve_target_uses_explicit_surface_when_address_unknown(sample_data):
     assert target["zone"] == "60300"
     assert target["surface_m2"] == 120
     assert target["matched_address"] is None
+    assert target["etiquette_dpe_actuelle"] is None
 
 
 def test_resolve_target_raises_when_address_unknown_and_no_surface(sample_data):
@@ -176,6 +178,7 @@ def test_build_comparison_report_on_multiple_addresses(
     assert report["zone"] == "60300"
     assert report["estimation_gain_renovation"] is not None
     assert report["statistiques_groupe"]["nombre_logements"] >= 1
+    assert report["etiquette_dpe_actuelle"] is not None  # trouvé dans sample_data
 
 
 def test_load_hypotheses_is_read_from_config_file_not_hardcoded(tmp_path):

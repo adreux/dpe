@@ -67,7 +67,12 @@ def resolve_target(
     zone = extract_zip_code(address_or_zone)
 
     if surface_m2 is not None:
-        return {"zone": zone, "surface_m2": surface_m2, "matched_address": None}
+        return {
+            "zone": zone,
+            "surface_m2": surface_m2,
+            "matched_address": None,
+            "etiquette_dpe_actuelle": None,
+        }
 
     normalized = _normalize_for_match(address_or_zone)
     # L'adresse recherchée inclut souvent la ville/code postal ("12 Rue X, 60300
@@ -84,6 +89,7 @@ def resolve_target(
             "zone": zone,
             "surface_m2": float(row["surface_m2"]),
             "matched_address": row["adresse"],
+            "etiquette_dpe_actuelle": str(row["etiquette_dpe"]),
         }
 
     raise ComparisonError(
@@ -216,6 +222,7 @@ def build_comparison_report(
         "adresse_recherchee": address_or_zone,
         "zone": target["zone"],
         "surface_m2": target["surface_m2"],
+        "etiquette_dpe_actuelle": target["etiquette_dpe_actuelle"],
         "logements_comparables": comparables.to_dict(orient="records"),
         "statistiques_groupe": stats,
         "estimation_gain_renovation": gain,
