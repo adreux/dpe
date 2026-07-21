@@ -27,6 +27,7 @@ def _sample_report(with_gain: bool = True) -> dict:
             "conso_moyenne_kwh_m2_an": 275.0,
             "conso_mediane_kwh_m2_an": 275.0,
             "distribution_etiquettes": {"D": 1, "E": 1},
+            "conso_moyenne_par_etiquette": {"D": 240.0, "E": 310.0},
         },
         "estimation_gain_renovation": (
             {
@@ -60,6 +61,8 @@ def test_generate_html_report_creates_file_with_key_figures(tmp_path):
     assert "10 Rue de Villevert 60300 Senlis" in content
     assert "1 661" in content or "1 660" in content  # économie €/an arrondie
     assert "hypothèses" in content.lower() or "hypothèse" in content.lower()
+    assert "240 kWh/m²/an en moyenne" in content  # conso moyenne étiquette D
+    assert "310 kWh/m²/an en moyenne" in content  # conso moyenne étiquette E
 
 
 def test_generate_html_report_handles_missing_gain_estimation(tmp_path):

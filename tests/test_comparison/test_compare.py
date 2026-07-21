@@ -89,6 +89,28 @@ def test_compute_group_stats_mean_median_and_label_distribution(sample_data):
     assert stats["conso_moyenne_kwh_m2_an"] == pytest.approx((250 + 300 + 200) / 3)
     assert stats["conso_mediane_kwh_m2_an"] == pytest.approx(250)
     assert stats["distribution_etiquettes"] == {"D": 1, "E": 1, "C": 1}
+    assert stats["conso_moyenne_par_etiquette"] == {
+        "D": pytest.approx(250),
+        "E": pytest.approx(300),
+        "C": pytest.approx(200),
+    }
+
+
+def test_compute_group_stats_averages_consumption_per_label_with_several_dwellings():
+    comparables = pd.DataFrame(
+        [
+            _row("A1", "1 Rue A", "60300", 100, 200, "D"),
+            _row("A2", "2 Rue A", "60300", 100, 300, "D"),
+            _row("A3", "3 Rue A", "60300", 100, 500, "F"),
+        ]
+    )
+
+    stats = compute_group_stats(comparables)
+
+    assert stats["conso_moyenne_par_etiquette"] == {
+        "D": pytest.approx(250),  # (200 + 300) / 2
+        "F": pytest.approx(500),
+    }
 
 
 def test_compute_group_stats_handles_empty_group():

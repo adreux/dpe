@@ -123,15 +123,28 @@ def compute_group_stats(comparables: pd.DataFrame) -> dict[str, Any]:
             "conso_moyenne_kwh_m2_an": None,
             "conso_mediane_kwh_m2_an": None,
             "distribution_etiquettes": {},
+            "conso_moyenne_par_etiquette": {},
         }
 
-    label_counts = comparables["etiquette_dpe"].value_counts().to_dict()
+    # value_counts() sur une colonne Categorical inclut les catégories à 0
+    # (ex: étiquette "A" absente du groupe) : on les exclut, elles n'apportent
+    # rien à un rapport commercial.
+    label_counts = comparables["etiquette_dpe"].value_counts()
+    label_counts = label_counts[label_counts > 0].to_dict()
+    conso_par_etiquette = comparables.groupby("etiquette_dpe", observed=True)[
+        "conso_kwh_m2_an"
+    ].mean()
+
     return {
         "nombre_logements": len(comparables),
         "conso_moyenne_kwh_m2_an": float(comparables["conso_kwh_m2_an"].mean()),
         "conso_mediane_kwh_m2_an": float(comparables["conso_kwh_m2_an"].median()),
         "distribution_etiquettes": {
             str(label): int(count) for label, count in label_counts.items()
+        },
+        "conso_moyenne_par_etiquette": {
+            str(label): float(mean_conso)
+            for label, mean_conso in conso_par_etiquette.items()
         },
     }
 

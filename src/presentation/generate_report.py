@@ -58,9 +58,12 @@ def _render_comparables_table(records: list[dict[str, Any]]) -> str:
     """
 
 
-def _render_label_distribution(distribution: dict[str, int]) -> str:
+def _render_label_distribution(
+    distribution: dict[str, int], conso_par_etiquette: dict[str, float] | None = None
+) -> str:
     if not distribution:
         return ""
+    conso_par_etiquette = conso_par_etiquette or {}
     total = sum(distribution.values()) or 1
     order = ["A", "B", "C", "D", "E", "F", "G"]
     bars = "\n".join(
@@ -72,10 +75,11 @@ def _render_label_distribution(distribution: dict[str, int]) -> str:
                  style="width: {100 * distribution.get(label, 0) / total:.1f}%"></div>
           </div>
           <span class="dist-count">{distribution.get(label, 0)}</span>
+          <span class="dist-conso">{_fmt_number(conso_par_etiquette.get(label))} kWh/m²/an en moyenne</span>
         </div>
         """
         for label in order
-        if label in distribution
+        if distribution.get(label, 0) > 0
     )
     return f'<div class="distribution">{bars}</div>'
 
@@ -168,7 +172,8 @@ _STYLE = f"""
   .label-f {{ background: #e34948; }}
   .label-g {{ background: #b32020; }}
   .distribution {{ margin: 1rem 0; }}
-  .dist-row {{ display: grid; grid-template-columns: 2rem 1fr 2.5rem; align-items: center; gap: 0.6rem; margin: 0.3rem 0; }}
+  .dist-row {{ display: grid; grid-template-columns: 2rem 1fr 2.5rem 11rem; align-items: center; gap: 0.6rem; margin: 0.3rem 0; }}
+  .dist-conso {{ font-size: 0.8rem; color: {_COLOR_INK_SECONDARY}; text-align: right; }}
   .dist-bar-track {{ background: {_COLOR_GRIDLINE}; border-radius: 6px; height: 10px; overflow: hidden; }}
   .dist-bar-fill {{ height: 100%; border-radius: 6px; }}
   .label-fill-a {{ background: #0ca30c; }}
@@ -240,7 +245,7 @@ def generate_html_report(report: dict[str, Any], output_path: Path) -> Path:
     {_render_comparables_table(report["logements_comparables"])}
 
     <h2>Répartition des étiquettes DPE du groupe comparable</h2>
-    {_render_label_distribution(stats["distribution_etiquettes"])}
+    {_render_label_distribution(stats["distribution_etiquettes"], stats.get("conso_moyenne_par_etiquette"))}
 
     <footer>
       Généré par le pipeline innovhemp-dpe-comparator à partir des données

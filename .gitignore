@@ -8,6 +8,8 @@ wheels/
 .env
 # Virtual environments
 .venv
+# macOS
+.DS_Store
 
 # Données générées par le pipeline (regénérables via le CLI)
 data/raw/*
