@@ -210,4 +210,73 @@ du ticket 1/2 (voir `data/processed/comparison_*.json`).
 
 ## Ticket 4 — Présentation (`src/presentation/`)
 
-_À documenter à l'issue du ticket 4._
+### Pipeline complet en une commande
+
+```bash
+uv sync
+python -m src.presentation.cli --address "12 rue Example, 60300 Senlis"
+```
+
+Enchaîne automatiquement :
+1. **Extraction** (ticket 1) — seulement si `data/raw/dpe_raw_<code_postal>.json`
+   n'existe pas déjà pour le code postal de l'adresse (sinon réutilisé tel quel).
+2. **Nettoyage** (ticket 2) — recalcule `data/processed/dpe_clean.parquet` à
+   partir de tous les fichiers `data/raw/dpe_raw_*.json` présents.
+3. **Comparaison** (ticket 3) — cherche l'adresse dans les données nettoyées
+   pour en déduire la surface, ou utilise `--surface <m2>` si l'adresse n'a pas
+   de DPE existant (obligatoire dans ce cas, sinon le CLI s'arrête avec un
+   message explicite).
+4. **Présentation** (ticket 4) — génère `output/argumentaire_<slug>.html`.
+
+### Contenu du document généré
+
+- Adresse/zone du prospect et surface prise en compte.
+- Bandeau d'avertissement visible : les hypothèses de gain sont des
+  **estimations non validées terrain**, à ne pas présenter comme un engagement.
+- Comparaison visuelle (barres) consommation actuelle vs estimée après
+  rénovation, économie mise en avant en €/an et kWh/an.
+- Tableau des logements comparables (adresse, surface, étiquette DPE,
+  consommation) et répartition des étiquettes DPE du groupe.
+
+### Tests
+
+```bash
+uv run pytest tests/test_presentation/
+```
+
+Couvre : génération HTML à partir d'un rapport fixture (avec et sans gain
+calculable), et un test d'intégration bout-en-bout (tickets 1→4) avec
+`fetch_dpe_for_zip_code` mocké — aucun appel réseau réel.
+
+### Lancer le pipeline complet pour une nouvelle adresse
+
+```bash
+python -m src.presentation.cli --address "<adresse complète avec code postal>"
+```
+
+Si l'adresse n'existe pas dans les DPE publics (logement jamais audité),
+ajoutez `--surface <m2>`. Le document est généré dans `output/`.
+
+---
+
+## Exécuter tous les tests
+
+```bash
+uv run pytest tests/
+```
+
+## Limites connues du pipeline
+
+- **Déduplication par adresse** (ticket 2) fusionne les logements distincts
+  d'un même immeuble collectif partageant la même adresse postale (pas
+  d'identifiant d'appartement dans les champs extraits).
+- **Prix du kWh unique** (`config/hypotheses.yaml`) : ne distingue pas
+  l'énergie de chauffage réelle de chaque logement (électricité, gaz, fioul,
+  bois ont des prix différents).
+- **Pourcentage de gain de rénovation fixe** (30%, non validé terrain) :
+  s'applique uniformément quel que soit l'état initial du logement, sans
+  distinction par étiquette DPE de départ.
+- **Résolution d'adresse approximative** : le rattachement d'une adresse
+  prospect à un logement existant se fait par inclusion de chaîne normalisée
+  (ponctuation ignorée), pas par géocodage exact — un homonyme de rue dans une
+  autre commune du même code postal pourrait théoriquement matcher à tort.

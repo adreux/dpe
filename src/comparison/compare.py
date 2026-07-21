@@ -22,6 +22,12 @@ from src.cleaning.clean_dpe import surface_bracket
 logger = logging.getLogger(__name__)
 
 _ZIP_CODE_RE = re.compile(r"\b(\d{5})\b")
+_NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _normalize_for_match(value: str) -> str:
+    """Normalise une adresse pour comparaison approximative (ponctuation ignorée)."""
+    return _NON_ALNUM_RE.sub(" ", value.lower()).strip()
 
 
 class ComparisonError(Exception):
@@ -63,11 +69,15 @@ def resolve_target(
     if surface_m2 is not None:
         return {"zone": zone, "surface_m2": surface_m2, "matched_address": None}
 
-    normalized = address_or_zone.strip().lower()
+    normalized = _normalize_for_match(address_or_zone)
     # L'adresse recherchée inclut souvent la ville/code postal ("12 Rue X, 60300
     # Senlis") alors que `adresse` en base est juste "12 Rue X" : on matche par
-    # inclusion plutôt que par égalité stricte.
-    matches = data[data["adresse"].str.lower().apply(lambda addr: addr in normalized)]
+    # inclusion (ponctuation ignorée) plutôt que par égalité stricte.
+    matches = data[
+        data["adresse"]
+        .apply(_normalize_for_match)
+        .apply(lambda addr: addr in normalized)
+    ]
     if not matches.empty:
         row = matches.iloc[0]
         return {
