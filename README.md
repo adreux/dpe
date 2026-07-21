@@ -165,7 +165,48 @@ uv run pytest tests/test_cleaning/
 
 ## Ticket 3 — Comparaison (`src/comparison/`)
 
-_À documenter à l'issue du ticket 3._
+### Hypothèses (`config/hypotheses.yaml`)
+
+⚠️ **Le pourcentage de gain énergétique et le prix du kWh sont des hypothèses
+fictives non validées terrain** (cf. commentaires dans le fichier). Elles sont
+chargées au runtime via `load_hypotheses()` — jamais codées en dur dans
+`compare.py`. À valider avec Louis avant tout usage commercial réel.
+
+### Utilisation du CLI
+
+```bash
+python -m src.comparison.cli --address "8 Rue de Villevert, 60300 Senlis" \
+    --data data/processed/dpe_clean.parquet --output data/processed/
+```
+
+Si l'adresse ne correspond à aucun DPE existant dans les données nettoyées, la
+surface doit être fournie explicitement via `--surface <m2>`.
+
+Produit `data/processed/comparison_<adresse_slug>.json` contenant : la liste
+des logements comparables, les statistiques du groupe (moyenne/médiane,
+distribution des étiquettes A–G) et l'estimation de gain de rénovation.
+
+### Logique de sélection des comparables
+
+1. Le code postal est extrait de l'adresse/zone recherchée (`extract_zip_code`).
+2. La surface cible est soit fournie explicitement (`--surface`), soit
+   retrouvée en cherchant l'adresse dans le jeu de données nettoyé (cas
+   fréquent : le logement a déjà un DPE existant).
+3. `find_comparables(zone, surface_m2, data)` filtre les logements de la même
+   `zone` (code postal) dont la surface est dans la tranche ± 15% autour de
+   `surface_m2` (réutilise `surface_bracket()` du ticket 2), en excluant le
+   logement cible lui-même s'il a été trouvé dans les données.
+4. `estimate_renovation_gain()` applique le pourcentage de réduction de
+   consommation à la consommation moyenne du groupe de comparables.
+
+### Tests
+
+```bash
+uv run pytest tests/test_comparison/
+```
+
+Validé manuellement sur 3 adresses réelles de Senlis (60300) avec les données
+du ticket 1/2 (voir `data/processed/comparison_*.json`).
 
 ## Ticket 4 — Présentation (`src/presentation/`)
 

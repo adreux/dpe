@@ -1,0 +1,23 @@
+# Hypothèses de gain énergétique et paramètres économiques utilisés par le
+# moteur de comparaison (ticket 3) et le rapport commercial (ticket 4).
+#
+# ⚠️ CES VALEURS SONT DES HYPOTHÈSES FICTIVES NON VALIDÉES TERRAIN. Elles ne
+# doivent pas être utilisées dans un argumentaire commercial réel avant
+# validation par Louis (ou toute personne compétente chez INNOVHEMP sur les
+# performances réelles des blocs de chanvre en rénovation).
+
+renovation:
+  reduction_pourcentage_estime: 0.30
+  source: >
+    Hypothèse conservatrice non validée terrain — cf. ticket 3, à confirmer
+    avant tout usage commercial réel avec des données de chantiers INNOVHEMP.
+  derniere_maj: "2026-07-21"
+
+energie:
+  prix_moyen_kwh_eur: 0.2516
+  source: >
+    Prix moyen TTC du kWh d'électricité (tarif bleu, option base) observé
+    début 2026 — donnée générique non spécifique à l'énergie de chauffage
+    réelle de chaque logement (gaz, fioul, bois, etc. ont des prix
+    différents). À affiner avant usage commercial réel.
+  derniere_maj: "2026-07-21"
